@@ -19,6 +19,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "3919564f-4585-458c-887d-f3aa7b567f33"
+      }
+    },
+    "owner": "cptvargo"
   }
 }
