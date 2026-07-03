@@ -20,7 +20,7 @@
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "^4.25.2",
     "react-native-track-player": "^4.1.2",
-    "react-native-worklets": "^0.10.1"
+    "react-native-worklets": "^0.10.0"
   },
   "scripts": {
     "start": "expo start",
@@ -31,5 +31,14 @@
   "private": true,
   "devDependencies": {
     "babel-preset-expo": "^57.0.1"
+  },
+  "expo": {
+    "doctor": {
+      "reactNativeDirectoryCheck": {
+        "exclude": [
+          "react-native-track-player"
+        ]
+      }
+    }
   }
 }
