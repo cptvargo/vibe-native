@@ -10,7 +10,8 @@
       "supportsTablet": false,
       "bundleIdentifier": "com.playvibemusic.vibenative",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIBackgroundModes": ["audio"]
       }
     },
     "android": {
