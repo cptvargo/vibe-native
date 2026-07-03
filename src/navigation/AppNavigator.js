@@ -1,37 +1,56 @@
-import React from 'react';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useState } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { View, Text } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
+import { TopNav } from '../components/TopNav';
 import { HomeScreen } from '../screens/HomeScreen';
-const SearchScreen  = () => <View style={{ flex:1, backgroundColor:'#080810' }}><Text style={{color:'#fff',marginTop:100,textAlign:'center'}}>Search</Text></View>;
-const LibraryScreen = () => <View style={{ flex:1, backgroundColor:'#080810' }}><Text style={{color:'#fff',marginTop:100,textAlign:'center'}}>Library</Text></View>;
-const AIScreen      = () => <View style={{ flex:1, backgroundColor:'#080810' }}><Text style={{color:'#fff',marginTop:100,textAlign:'center'}}>AI Music</Text></View>;
+import { AIScreen } from '../screens/AIScreen';
 
-const Tab   = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
-function TabNavigator() {
+// Placeholder screens
+const SearchScreen  = () => {
+  const { theme } = useTheme();
+  return <View style={[styles.placeholder, { backgroundColor: theme.background }]}><Text style={{ color: theme.textDim }}>Search coming soon</Text></View>;
+};
+const LibraryScreen = () => {
+  const { theme } = useTheme();
+  return <View style={[styles.placeholder, { backgroundColor: theme.background }]}><Text style={{ color: theme.textDim }}>Library coming soon</Text></View>;
+};
+
+function MainScreen({ navigation }) {
+  const { theme } = useTheme();
+  const [activeTab, setActiveTab] = useState('home');
+
   return (
-    <Tab.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarStyle: { backgroundColor: '#080810', borderTopColor: 'rgba(255,255,255,0.08)' },
-        tabBarActiveTintColor: '#a78bfa',
-        tabBarInactiveTintColor: '#475569',
-      }}
-    >
-      <Tab.Screen name="Home"    component={HomeScreen}    options={{ tabBarLabel: 'Home' }} />
-      <Tab.Screen name="Search"  component={SearchScreen}  options={{ tabBarLabel: 'Search' }} />
-      <Tab.Screen name="Library" component={LibraryScreen} options={{ tabBarLabel: 'Library' }} />
-      <Tab.Screen name="AI"      component={AIScreen}      options={{ tabBarLabel: 'AI' }} />
-    </Tab.Navigator>
+    <View style={[styles.main, { backgroundColor: theme.background }]}>
+      <TopNav activeTab={activeTab} onTabChange={setActiveTab} />
+      <View style={styles.content}>
+        {activeTab === 'home'    && <HomeScreen    navigation={navigation} />}
+        {activeTab === 'search'  && <SearchScreen  navigation={navigation} />}
+        {activeTab === 'library' && <LibraryScreen navigation={navigation} />}
+        {activeTab === 'ai'      && <AIScreen      navigation={navigation} />}
+      </View>
+    </View>
   );
 }
 
 export function AppNavigator() {
+  const { theme } = useTheme();
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="Main" component={TabNavigator} />
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        cardStyle: { backgroundColor: theme.background },
+      }}
+    >
+      <Stack.Screen name="Main"   component={MainScreen} />
     </Stack.Navigator>
   );
 }
+
+const styles = StyleSheet.create({
+  main:        { flex: 1 },
+  content:     { flex: 1 },
+  placeholder: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+});

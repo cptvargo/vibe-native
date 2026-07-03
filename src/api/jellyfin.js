@@ -85,6 +85,9 @@ export async function getArtistTracks(artistId, limit = 30) {
 export async function getAIAlbums() {
   return request(`/Users/${USER_ID}/Items?ParentId=c05385a3a801fb8a9d4ee6a3a208bd23&IncludeItemTypes=MusicAlbum&Recursive=true&Fields=PrimaryImageAspectRatio,ProductionYear&SortBy=DateCreated&SortOrder=Descending`);
 }
+export async function getGenres(limit = 30) {
+  return request(`/Genres?UserId=${USER_ID}&ParentId=${VIBE_LIB}&Limit=${limit}&SortBy=SortName&IncludeItemTypes=Audio`);
+}
 export async function getAITracks() {
   return request(`/Users/${USER_ID}/Items?ParentId=c05385a3a801fb8a9d4ee6a3a208bd23&IncludeItemTypes=Audio&Recursive=true&Fields=RunTimeTicks,AlbumId,PrimaryImageAspectRatio,AudioInfo&SortBy=Album,ParentIndexNumber,IndexNumber&SortOrder=Ascending`);
 }
