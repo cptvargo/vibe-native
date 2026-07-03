@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import TrackPlayer from 'react-native-track-player';
 import { StatusBar } from 'expo-status-bar';
 
 import { AppNavigator } from './src/navigation/AppNavigator';
