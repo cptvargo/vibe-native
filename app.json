@@ -12,9 +12,6 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "UIBackgroundModes": ["audio"],
-        "NSAppTransportSecurity": {
-          "NSAllowsArbitraryLoads": true
-        }
       }
     },
     "android": {
