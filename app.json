@@ -25,6 +25,9 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "plugins": [
+      "react-native-reanimated"
+    ],
     "extra": {
       "eas": {
         "projectId": "3919564f-4585-458c-887d-f3aa7b567f33"
