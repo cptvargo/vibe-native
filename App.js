@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DarkTheme } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StatusBar } from 'expo-status-bar';
@@ -23,7 +23,16 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <NavigationContainer theme={{ colors: { background: '#080810' } }}>
+        <NavigationContainer theme={{
+            ...DarkTheme,
+            colors: {
+              ...DarkTheme.colors,
+              background: '#080810',
+              card: '#0f0f1a',
+              primary: '#a78bfa',
+              border: 'rgba(255,255,255,0.08)',
+            },
+          }}>
           <StatusBar style="light" />
           <AppNavigator />
         </NavigationContainer>

@@ -2,9 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { View, Text } from 'react-native';
-
-// Placeholders — replace with real screens as they're built
-const HomeScreen    = () => <View style={{ flex:1, backgroundColor:'#080810' }}><Text style={{color:'#fff',marginTop:100,textAlign:'center'}}>Home</Text></View>;
+import { HomeScreen } from '../screens/HomeScreen';
 const SearchScreen  = () => <View style={{ flex:1, backgroundColor:'#080810' }}><Text style={{color:'#fff',marginTop:100,textAlign:'center'}}>Search</Text></View>;
 const LibraryScreen = () => <View style={{ flex:1, backgroundColor:'#080810' }}><Text style={{color:'#fff',marginTop:100,textAlign:'center'}}>Library</Text></View>;
 const AIScreen      = () => <View style={{ flex:1, backgroundColor:'#080810' }}><Text style={{color:'#fff',marginTop:100,textAlign:'center'}}>AI Music</Text></View>;
