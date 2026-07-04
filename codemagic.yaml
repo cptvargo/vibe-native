@@ -1,0 +1,76 @@
+workflows:
+
+  # ── Development build — installs once, hot reloads via expo start ─────────────
+  ios-dev:
+    name: Vibe iOS — Dev Build
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      node: 18
+      xcode: latest
+      cocoapods: default
+      groups:
+        - vibe_secrets
+      ios_signing:
+        distribution_type: ad_hoc
+        bundle_identifier: com.playvibemusic.vibenative
+    scripts:
+      - name: Install deps
+        script: npm ci
+      - name: Expo prebuild
+        script: npx expo prebuild --platform ios --clean
+      - name: Pod install
+        script: cd ios && pod install
+      - name: Build dev IPA
+        script: |
+          xcode-project build-ipa \
+            --workspace "ios/vibenative.xcworkspace" \
+            --scheme "vibenative" \
+            --config Debug
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      email:
+        recipients:
+          - jvargas22@duck.com
+        notify:
+          success: true
+          failure: true
+
+  # ── Preview build — standalone, for testing final builds ─────────────────────
+  ios-preview:
+    name: Vibe iOS — Preview Build
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      node: 18
+      xcode: latest
+      cocoapods: default
+      groups:
+        - vibe_secrets
+      ios_signing:
+        distribution_type: ad_hoc
+        bundle_identifier: com.playvibemusic.vibenative
+    scripts:
+      - name: Install deps
+        script: npm ci
+      - name: Expo prebuild
+        script: npx expo prebuild --platform ios --clean
+      - name: Pod install
+        script: cd ios && pod install
+      - name: Build preview IPA
+        script: |
+          xcode-project build-ipa \
+            --workspace "ios/vibenative.xcworkspace" \
+            --scheme "vibenative"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      email:
+        recipients:
+          - jvargas22@duck.com
+        notify:
+          success: true
+          failure: true
