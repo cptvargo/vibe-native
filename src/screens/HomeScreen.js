@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
-  View, Text, Image, ScrollView, FlatList,
-  StyleSheet, Animated, Dimensions,
-  TouchableOpacity, Platform,
+  View, Text, Image, ScrollView,
+  StyleSheet, Dimensions,
+  TouchableOpacity,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,8 +10,10 @@ import { useTheme } from '../context/ThemeContext';
 import {
   getRecentlyPlayed, getRecentAlbums, getTopAlbums,
   getGenres, getArtists, getImageUrl, getAlbumImageUrl,
-  getArtistImageUrl,
+  getArtistImageUrl, getAlbumTracks,
 } from '../api/jellyfin';
+import { ARTIST_IMAGES } from '../config/artistImages';
+import { playQueue } from '../audio/trackPlayerService';
 
 const { width: W, height: H } = Dimensions.get('window');
 const ALBUM_CARD  = 140;
@@ -55,7 +57,9 @@ function AlbumCard({ item, onPress, theme }) {
 
 // ─── Artist card (circle photo + name) ────────────────────────────────────
 function ArtistCard({ artistId, artistName, onPress, theme }) {
-  const imgUrl = artistId ? getArtistImageUrl(artistId, 200) : null;
+  const localImg = ARTIST_IMAGES[artistName];
+  const remoteUrl = artistId ? getArtistImageUrl(artistId, 200) : null;
+
   return (
     <TouchableOpacity
       onPress={() => onPress?.({ Id: artistId, Name: artistName })}
@@ -63,8 +67,10 @@ function ArtistCard({ artistId, artistName, onPress, theme }) {
       activeOpacity={0.8}
     >
       <View style={[styles.artistRing, { borderColor: theme.accent }]}>
-        {imgUrl ? (
-          <Image source={{ uri: imgUrl }} style={styles.artistImg} />
+        {localImg ? (
+          <Image source={localImg} style={styles.artistImg} />
+        ) : remoteUrl ? (
+          <Image source={{ uri: remoteUrl }} style={styles.artistImg} />
         ) : (
           <View style={[styles.artistImg, { backgroundColor: theme.surface }]} />
         )}
@@ -151,7 +157,6 @@ function GenreCard({ genre, onPress, theme }) {
 export function HomeScreen({ navigation }) {
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
-  const breathAnim = useRef(new Animated.Value(1)).current;
 
   const [recentTracks,  setRecentTracks]  = useState([]);
   const [recentAlbums,  setRecentAlbums]  = useState([]);
@@ -160,14 +165,25 @@ export function HomeScreen({ navigation }) {
   const [artistCorner,  setArtistCorner]  = useState([]);
   const [loading,       setLoading]       = useState(true);
 
-  // Breathing bg animation
-  useEffect(() => {
-    const loop = () => Animated.sequence([
-      Animated.timing(breathAnim, { toValue: 1.06, duration: 5000, useNativeDriver: true }),
-      Animated.timing(breathAnim, { toValue: 1.00, duration: 5000, useNativeDriver: true }),
-    ]).start(({ finished }) => { if (finished) loop(); });
-    loop();
-  }, []);
+  const handleTrackPress = async (track) => {
+    const idx = recentTracks.indexOf(track);
+    await playQueue(recentTracks, Math.max(0, idx));
+    navigation.navigate('Player');
+  };
+
+  const handleAlbumPress = async (album) => {
+    try {
+      const result = await getAlbumTracks(album.Id);
+      const tracks = result.Items || [];
+      if (tracks.length > 0) {
+        await playQueue(tracks);
+        navigation.navigate('Player');
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
 
   useEffect(() => {
     Promise.all([
@@ -175,57 +191,40 @@ export function HomeScreen({ navigation }) {
       getRecentAlbums(20),
       getTopAlbums(20),
       getGenres(30),
-    ]).then(([played, added, top, genreData]) => {
-      const tracks = played.Items  || [];
-      const albums = added.Items   || [];
-      const tops   = top.Items     || [];
-      const genreList = genreData.Items || [];
+      getArtists(20),
+    ]).then(([played, added, top, genreData, artistData]) => {
+      setRecentTracks(played.Items  || []);
+      setRecentAlbums(added.Items   || []);
+      setTopAlbums(top.Items        || []);
+      setGenres(genreData.Items     || []);
 
-      setRecentTracks(tracks);
-      setRecentAlbums(albums);
-      setTopAlbums(tops);
-      setGenres(genreList);
-
-      // Build Artist Corner from recently played unique artists
+      // Remove collaboration artists (commas = "Artist A, Artist B") and deduplicate
       const seen = new Set();
-      const artists = [];
-      for (const t of tracks) {
-        const id   = t.AlbumArtistIds?.[0];
-        const name = t.AlbumArtist || t.Artists?.[0];
-        if (id && name && !seen.has(id)) {
-          seen.add(id);
-          artists.push({ id, name });
-          if (artists.length >= 12) break;
-        }
-      }
-      setArtistCorner(artists);
+      const uniqueArtists = (artistData.Items || []).filter(a => {
+        const name = a.Name?.trim();
+        if (!name || name.includes(',')) return false;
+        const key = name.toLowerCase();
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      setArtistCorner(uniqueArtists);
     }).catch(console.error).finally(() => setLoading(false));
   }, []);
-
-  const bgArtUrl = recentAlbums[0]
-    ? getImageUrl(recentAlbums[0].Id, 'Primary', 800)
-    : null;
 
   return (
     <View style={[styles.container, { backgroundColor: theme.background }]}>
 
-      {/* Ambient breathing background */}
-      {bgArtUrl && (
-        <Animated.Image
-          source={{ uri: bgArtUrl }}
-          style={[styles.ambientBg, { transform: [{ scale: breathAnim }] }]}
-          blurRadius={Platform.OS === 'ios' ? 80 : 25}
-        />
-      )}
+      {/* Accent glow — pure theme color, no image. Changes automatically when music plays. */}
       <LinearGradient
-        colors={[theme.accent + '18', theme.background + 'CC', theme.background]}
-        locations={[0, 0.35, 0.7]}
-        style={StyleSheet.absoluteFill}
+        colors={[theme.accent + '35', theme.accent + '10', 'transparent']}
+        locations={[0, 0.3, 0.7]}
+        style={styles.topGlow}
       />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 40 }}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
       >
 
         {/* ── Artist Corner ─────────────────────────────────────── */}
@@ -233,12 +232,12 @@ export function HomeScreen({ navigation }) {
           <View style={styles.section}>
             <SectionHeader title="Artist Corner" theme={theme} />
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.hScroll}>
-              {artistCorner.map(a => (
+              {artistCorner.map(artist => (
                 <ArtistCard
-                  key={a.id}
-                  artistId={a.id}
-                  artistName={a.name}
-                  onPress={() => navigation?.push('Artist', { artistId: a.id, artistName: a.name })}
+                  key={artist.Id}
+                  artistId={artist.Id}
+                  artistName={artist.Name}
+                  onPress={() => navigation?.push('Artist', { artistId: artist.Id, artistName: artist.Name })}
                   theme={theme}
                 />
               ))}
@@ -259,7 +258,7 @@ export function HomeScreen({ navigation }) {
                 key={track.Id + i}
                 track={track}
                 theme={theme}
-                onPress={() => {/* TODO: play track */}}
+                onPress={handleTrackPress}
               />
             ))}
           </View>
@@ -279,7 +278,7 @@ export function HomeScreen({ navigation }) {
                   key={album.Id}
                   item={album}
                   theme={theme}
-                  onPress={() => {/* TODO: navigate to album */}}
+                  onPress={handleAlbumPress}
                 />
               ))}
             </ScrollView>
@@ -311,7 +310,7 @@ export function HomeScreen({ navigation }) {
                   key={album.Id}
                   item={album}
                   theme={theme}
-                  onPress={() => {/* TODO */}}
+                  onPress={handleAlbumPress}
                 />
               ))}
             </ScrollView>
@@ -343,10 +342,9 @@ export function HomeScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
 
-  ambientBg: {
+  topGlow: {
     position: 'absolute',
-    width: W * 1.2, height: H * 0.5,
-    top: 0, left: -(W * 0.1),
+    top: 0, left: 0, right: 0, height: H * 0.45,
   },
 
   section:      { paddingTop: 28 },

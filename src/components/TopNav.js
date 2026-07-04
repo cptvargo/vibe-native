@@ -1,32 +1,38 @@
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
+import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../context/ThemeContext';
 
 const TABS = [
-  { id: 'home',    label: 'Home' },
-  { id: 'search',  label: 'Search' },
-  { id: 'library', label: 'Library' },
-  { id: 'ai',      label: 'AI Music' },
+  { id: 'home',    label: 'Home',     icon: 'home-outline',     iconActive: 'home' },
+  { id: 'search',  label: 'Search',   icon: 'search-outline',   iconActive: 'search' },
+  { id: 'library', label: 'Library',  icon: 'library-outline',  iconActive: 'library' },
+  { id: 'ai',      label: 'AI Music', icon: 'sparkles-outline', iconActive: 'sparkles' },
 ];
 
 export function TopNav({ activeTab, onTabChange }) {
   const { theme } = useTheme();
-  const insets = useSafeAreaInsets();
 
   return (
-    <View style={[
-      styles.wrapper,
-      {
-        paddingTop:      insets.top + 6,
-        backgroundColor: theme.navBg,
-        borderBottomColor: theme.border,
-      },
-    ]}>
-      <View style={styles.header}>
-        <Text style={[styles.logo, { color: theme.accentBright }]}>ViBE</Text>
-      </View>
+    <View style={styles.wrapper}>
+      <BlurView intensity={60} tint="dark" style={StyleSheet.absoluteFill} />
 
-      <View style={styles.tabRow}>
+      {/* Single row: ViBE | tabs */}
+      <View style={styles.navRow}>
+
+        {/* ViBE logo — all heavy weight, Vi slightly dimmed */}
+        <View style={styles.logoWrap}>
+          <Text style={[styles.logoText, {
+            textShadowColor: theme.accent,
+            textShadowOffset: { width: 0, height: 0 },
+            textShadowRadius: 10,
+          }]}>
+            <Text style={{ color: theme.accentBright + 'AA' }}>Vi</Text>
+            <Text style={{ color: theme.accentBright }}>BE</Text>
+          </Text>
+        </View>
+
+        {/* Tabs — active is just purple, no box */}
         {TABS.map(tab => {
           const active = activeTab === tab.id;
           return (
@@ -36,15 +42,14 @@ export function TopNav({ activeTab, onTabChange }) {
               style={styles.tab}
               activeOpacity={0.7}
             >
-              <Text style={[
-                styles.tabLabel,
-                { color: active ? theme.accentBright : theme.textDim },
-              ]}>
+              <Ionicons
+                name={active ? tab.iconActive : tab.icon}
+                size={18}
+                color={active ? theme.accentBright : theme.accent + '66'}
+              />
+              <Text style={[styles.tabLabel, { color: active ? theme.accentBright : theme.accent + '66' }]}>
                 {tab.label}
               </Text>
-              {active && (
-                <View style={[styles.indicator, { backgroundColor: theme.accentBright }]} />
-              )}
             </TouchableOpacity>
           );
         })}
@@ -56,35 +61,36 @@ export function TopNav({ activeTab, onTabChange }) {
 const styles = StyleSheet.create({
   wrapper: {
     borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(255,255,255,0.06)',
   },
-  header: {
-    paddingHorizontal: 20,
-    paddingBottom: 8,
-  },
-  logo: {
-    fontSize: 22,
-    fontWeight: '700',
-    letterSpacing: 1,
-  },
-  tabRow: {
+
+  navRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: 12,
+    paddingVertical: 8,
   },
+
+  logoWrap: {
+    paddingHorizontal: 6,
+    marginRight: 4,
+  },
+  logoText: {
+    fontSize: 22,
+    fontWeight: '900',
+    letterSpacing: 2,
+  },
+
   tab: {
     flex: 1,
     alignItems: 'center',
-    paddingVertical: 10,
+    justifyContent: 'center',
+    paddingVertical: 6,
+    gap: 2,
   },
   tabLabel: {
-    fontSize: 13,
-    fontWeight: '500',
+    fontSize: 9,
+    fontWeight: '600',
     letterSpacing: 0.3,
-  },
-  indicator: {
-    position: 'absolute',
-    bottom: 0,
-    height: 2,
-    width: '60%',
-    borderRadius: 1,
   },
 });

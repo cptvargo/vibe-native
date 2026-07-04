@@ -55,7 +55,7 @@ export async function getAlbumTracks(albumId) {
   return request(`/Users/${USER_ID}/Items?ParentId=${albumId}&IncludeItemTypes=Audio&Fields=PrimaryImageAspectRatio,AudioInfo,ArtistItems,AlbumArtistIds&SortBy=IndexNumber`);
 }
 export async function getArtists(limit = 200) {
-  return request(`/Artists?UserId=${USER_ID}&ParentId=${VIBE_LIB}&Limit=${limit}&Fields=PrimaryImageAspectRatio,Overview&SortBy=SortName`);
+  return request(`/Artists/AlbumArtists?UserId=${USER_ID}&ParentId=${VIBE_LIB}&Limit=${limit}&Fields=PrimaryImageAspectRatio,Overview&SortBy=SortName`);
 }
 export async function getAllTracks(limit = 500) {
   return request(`/Users/${USER_ID}/Items?ParentId=${VIBE_LIB}&IncludeItemTypes=Audio&Limit=${limit}&Recursive=true&Fields=PrimaryImageAspectRatio,AudioInfo,ParentId&SortBy=SortName`);
@@ -90,6 +90,12 @@ export async function getGenres(limit = 30) {
 }
 export async function getAITracks() {
   return request(`/Users/${USER_ID}/Items?ParentId=c05385a3a801fb8a9d4ee6a3a208bd23&IncludeItemTypes=Audio&Recursive=true&Fields=RunTimeTicks,AlbumId,PrimaryImageAspectRatio,AudioInfo&SortBy=Album,ParentIndexNumber,IndexNumber&SortOrder=Ascending`);
+}
+
+// Tiny image for color extraction only — 32×32px, quality 50 → ~2 KB, ~5ms download
+export function getColorExtractionUrl(itemId) {
+  if (!itemId) return null;
+  return `${url()}/Items/${itemId}/Images/Primary?fillHeight=32&fillWidth=32&quality=50&api_key=${TOKEN}`;
 }
 
 export function getStreamUrl(itemId) {

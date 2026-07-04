@@ -1,0 +1,12 @@
+{
+  "name": "vibe-color-server",
+  "version": "1.0.0",
+  "description": "Local color extraction proxy for ViBE — runs alongside Jellyfin",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "node-vibrant": "^3.2.1-alpha.1"
+  }
+}

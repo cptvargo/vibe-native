@@ -20,5 +20,13 @@
   },
   "submit": {
     "production": {}
+  },
+  "update": {
+    "production": {
+      "branch": "production"
+    },
+    "preview": {
+      "branch": "preview"
+    }
   }
 }
